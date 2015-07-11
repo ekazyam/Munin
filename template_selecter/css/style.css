@@ -1,0 +1,81 @@
+.templates {
+	position:absolute;
+	margin:0 auto;
+	text-align: center;
+}
+.change_submit {
+	position:absolute;
+	top:90%;
+	text-align: center;
+}
+
+.templates input{
+	display: none;
+}
+.templates label{
+	display: block;
+	float: left;
+	cursor: pointer;
+	width: 80px;
+	margin: 0;
+	padding: 12px 5px;
+	border-right: 1px solid #abb2b7;
+	background: #bdc3c7;
+	color: #555e64;
+	font-size: 14px;
+	text-align: center;
+	line-height: 1;
+	transition: .2s;
+}
+
+.change_submit input{
+	display: block;
+	float: left;
+	cursor: pointer;
+	width: 240px;
+	margin: 0;
+	padding: 12px 5px;
+	border-right: 1px solid #abb2b7;
+	background: #bdc3c7;
+	color: #555e64;
+	font-size: 14px;
+	text-align: center;
+	line-height: 1;
+	transition: .2s;
+}
+
+.change_submit input{
+	display: block;
+	float: left;
+	cursor: pointer;
+	width: 240px;
+	margin: 0;
+	padding: 12px 5px;
+	border-right: 1px solid #abb2b7;
+	background: #1b91d;;
+	color: #555e64;
+	font-size: 14px;
+	text-align: center;
+	line-height: 1;
+	transition: .2s;
+	border-right: 1px solid #abb2b7;
+	background: #1b91d;;
+	color: #555e64;
+	font-size: 14px;
+	text-align: center;
+	line-height: 1;
+	transition: .2s;
+}
+
+.templates label:first-of-type{
+	border-radius: 3px 0 0 3px;
+}
+.templates label:last-of-type{
+	border-right: 0px;
+	border-radius: 0 3px 3px 0;
+}
+.templates input[type="radio"]:checked + label {
+	background-color: #a1b91d;
+	color: #fff;
+}
+
