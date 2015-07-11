@@ -1,0 +1,72 @@
+#!/usr/bin/php
+<?php
+/*##############################
+* Author: Rum Coke
+* Data  : 2015/06/14
+* Ver   : 0.9.4
+*##############################*/
+/* include create graph lib */
+require_once('/usr/share/munin/plugins/lib_php/munin_graph.php');
+require_once('/usr/share/munin/plugins/lib_php/munin_http_ping.php');
+/*******************
+ * Http Ping.
+ *******************/
+/* SetHttpPingData. */
+$http_ping = new HttpPing();
+$http_ping->setTry('3');
+$http_ping->setUrl(
+array(
+ 'http://www.google.co.jp/',
+ 'http://www.yahoo.co.jp/',
+ 'http://www.msn.com/'
+)
+);
+
+$label = array(
+ 'Google',
+ 'Yahoo!',
+ 'MSN'
+);
+
+/* Exec httping. */
+$http_ping->SendHttpPing();
+
+/*******************
+ * Graph Create.
+ *******************/
+/* SetGraphData */
+$graph = new CreateGraph();
+$graph->setWarn('1000.0');
+$graph->setCritical('5000.0');
+$graph->setTitle('Http Ping by PHP');
+$graph->setVlabel('response(ms)');
+$graph->setCategory('mytool');
+$graph->setScale('yes');
+$graph->setFormat('%6.2lf');
+$graph->setDraw('LINE1');
+$graph->setInfo('Http Response.');
+$graph->setLabel($label);
+$graph->setValue($http_ping->getPingResult());
+
+/* Arg Check at this function. */
+if( isset($argv[1]))
+{
+	if ( "$argv[1]" == "autoconf" )
+	{
+		$graph->PrintData('yes');
+	       	exit;
+	}
+
+	if ( "$argv[1]" == "config" )
+	{
+		/* show parameter */
+		$graph->showParameters();
+		exit;
+	}
+}
+
+/* Show Value and Create Graph. */
+$graph->showValue();
+
+exit;
+?>

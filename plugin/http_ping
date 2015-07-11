@@ -1,0 +1,93 @@
+#!/bin/bash
+################################
+# Author: Rum Coke
+# Data  : 2015/05/14
+# Ver   : 0.9.0
+################################
+# Send to HttpPing to URLs.
+function SendHttpPing()
+{
+	for (( Z = 0; Z < ${#URL[@]}; ++Z ))
+	do
+		ArrayResult[$Z]=`httping -c ${TRY} ${URL} 2> /dev/null`
+		echo ArrayResult[$Z] | grep "${ERROR}"  && ArrayResult[$Z]=''
+	done
+}
+
+# Check HttpPing Response.
+function CheckHttpResponse()
+{
+	for (( Z = 0; Z < ${#URL[@]}; ++Z ))
+	do
+		if [ -n "${ArrayResult[$Z]}" ]
+		then
+			WORK=`echo ${ArrayResult[$Z]} | sed -e 's/.*round-trip\ min\/avg\/max\ =\ //g' -e 's/\ ms$//g'`
+			ArrayAvg[$Z]=`echo ${WORK} | awk -F\/ '{ print $2 }'`
+		fi	
+	done
+}
+
+################################
+# Main Function
+################################
+
+# Locale Setting.
+LANG=C
+
+# Try Count.
+TRY=3
+
+# Warn and Critical.(ms)
+WARN_RES='1000.0'
+CRITICAL_RES='5000.0'
+
+# Error Msg.
+ERROR='No valid IPv4 or IPv6 address found for'
+
+# URLs.
+URL=( "http://www.google.co.jp" "http://www.yahoo.co.jp/" "http://www.msn.com/" )
+
+# Label for URLs.
+URL_LABEL=( "Google" "Yahoo!" "MSN" )
+
+# Exec httping.
+SendHttpPing
+
+# Response Check.
+CheckHttpResponse
+
+if [ "$1" = "autoconf" ]; then
+	echo yes
+       	exit 0
+fi
+
+if [ "$1" = "config" ]; then
+	# Glaph Common
+	echo 'graph_title Http Ping'
+	echo 'graph_args --base 1000 -l 0'
+	echo 'graph_vlabel response(ms)'
+	echo 'graph_category network'
+	echo 'graph_order response time'
+	echo 'graph_scale yes'
+	echo 'graph_printf %6.2lf'
+	echo "graph_order ${URL_LABEL[0]} ${URL_LABEL[1]} ${URL_LABEL[2]}"
+
+	# Set Info.
+	for (( Z = 0; Z < ${#URL[@]}; ++Z ))
+	do
+		echo "${URL_LABEL[$Z]}.label ${URL_LABEL[$Z]}"
+		echo "${URL_LABEL[$Z]}.draw LINE1"
+		echo "${URL_LABEL[$Z]}.warning ${WARN_RES}"
+		echo "${URL_LABEL[$Z]}.critical ${CRITICAL_RES}"
+		echo "${URL_LABEL[$Z]}.info Http Response."
+	done
+
+	exit 0
+fi
+
+# Set Value.
+for (( Z = 0; Z < ${#URL[@]}; ++Z ))
+do
+	echo "${URL_LABEL[$Z]}.value ${ArrayAvg[$Z]}"
+done
+

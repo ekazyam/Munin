@@ -1,0 +1,46 @@
+#!/bin/bash
+################################
+# Author: Rum Coke
+# Data  : 2015/05/06
+# Ver   : 1.0.0
+################################
+# for USB thermometer-528018
+
+# path of tempsensor binary
+BIN_PATH="/usr/local/bin"
+
+# Setting threshold value for warn and critical.
+WARN_TEMP='30'
+CRITICAL_TEMP='35'
+
+if [ "$1" = "autoconf" ]; then
+        echo yes
+        exit 0
+fi
+
+if [ "$1" = "config" ]; then
+
+	# glaph common
+        echo 'graph_title temperature'
+        echo 'graph_args -l 0 '
+        echo 'graph_vlabel C'
+        echo 'graph_category system'
+
+	# temp data
+        echo 'temperature.label temperature'
+        echo 'temperature.draw LINE'
+	echo "temperature.warning ${WARN_TEMP}"
+	echo "temperature.critical ${CRITICAL_TEMP}"
+
+        print_warning temperature
+        print_critical temperature
+
+        exit 0
+fi
+
+work=`${BIN_PATH}/temper | cut -d ',' -f 2`
+
+ROOM_TEMP="${work:0:4}"
+
+echo "temperature.value ${ROOM_TEMP}"
+
