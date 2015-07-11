@@ -1,16 +1,16 @@
 #!/bin/bash
 ################################
 # Author: Rum Coke
-# Data  : 2015/05/14
-# Ver   : 0.9.0
+# Data  : 2015/07/10
+# Ver   : 0.9.1
 ################################
 # Send to HttpPing to URLs.
 function SendHttpPing()
 {
 	for (( Z = 0; Z < ${#URL[@]}; ++Z ))
 	do
-		ArrayResult[$Z]=`httping -c ${TRY} ${URL} 2> /dev/null`
-		echo ArrayResult[$Z] | grep "${ERROR}"  && ArrayResult[$Z]=''
+		# Execute Httping.
+		ArrayResult[$Z]=`httping -c ${TRY} --timeout ${TIME_OUT} ${URL[$Z]} 2> /dev/null`
 	done
 }
 
@@ -19,11 +19,21 @@ function CheckHttpResponse()
 {
 	for (( Z = 0; Z < ${#URL[@]}; ++Z ))
 	do
-		if [ -n "${ArrayResult[$Z]}" ]
+		# Error Check.
+		echo ${ArrayResult[$Z]} | grep "${ERROR_CHECK_LABEL}" >/dev/null 2>&1 || ERROR_FLAG=true
+		
+		if [ ${ERROR_FLAG} == 'true' ]
 		then
+			# Error Found.
+			ArrayAvg[$Z]=${TIME_OUT_VALUE}
+		else
+			# Error Not Found.
 			WORK=`echo ${ArrayResult[$Z]} | sed -e 's/.*round-trip\ min\/avg\/max\ =\ //g' -e 's/\ ms$//g'`
 			ArrayAvg[$Z]=`echo ${WORK} | awk -F\/ '{ print $2 }'`
-		fi	
+		fi
+		
+		# Reflesh Flag.
+		ERROR_FLAG=false
 	done
 }
 
@@ -37,18 +47,33 @@ LANG=C
 # Try Count.
 TRY=3
 
+# Time Out.
+TIME_OUT=30s
+
+# Time Out Value(ms).
+TIME_OUT_VALUE=99999.0
+
 # Warn and Critical.(ms)
 WARN_RES='1000.0'
 CRITICAL_RES='5000.0'
 
-# Error Msg.
-ERROR='No valid IPv4 or IPv6 address found for'
-
 # URLs.
-URL=( "http://www.google.co.jp" "http://www.yahoo.co.jp/" "http://www.msn.com/" )
+URL=( \
+'http://www.google.com' \
+'http://www.yahoo.co.jp' \
+)
 
 # Label for URLs.
-URL_LABEL=( "Google" "Yahoo!" "MSN" )
+URL_LABEL=( \
+'Google' \
+'Yahoo!' \
+)
+
+# Error Check Label.
+ERROR_CHECK_LABEL='connected to'
+
+# Error Flag.
+ERROR_FLAG=false
 
 # Exec httping.
 SendHttpPing
