@@ -1,0 +1,86 @@
+#!/bin/bash
+################################
+# Author: Rum Coke
+# Data  : 2015/07/10
+# Ver   : 0.9.0
+################################
+# Set Label
+function SetLabel()
+{
+	for (( Z = 0; Z < ${#DATA[@]}; ++Z ))
+	do
+		# CSV -> Label.
+		LABEL[$Z]=`echo Core:${DATA[$Z]} | cut -d ',' -f 1`
+	done
+}
+
+# Set Cpu Use Rate.
+function SetRate()
+{
+	for (( Z = 0; Z < ${#DATA[@]}; ++Z ))
+	do
+		# CSV -> Cpu Use Rate.
+		WORK=`echo ${DATA[$Z]} | cut -d ',' -f 2`
+		RATE[$Z]=`echo "scale=2; 100 - ${WORK}" | bc`
+	done
+}
+
+################################
+# Main Function
+################################
+# Locale Setting.
+LANG=C
+
+# Warn and Critical.
+WARN_RES='80.0'
+CRITICAL_RES='90.0'
+
+# Return Data.
+DATA=(`mpstat -P ALL | grep -Ev ^$ | sed -ne '3,$p' | awk '{ print $2","$10 }'`)
+
+# Label
+LABEL=''
+
+# Rate
+RATE=''
+
+# Set Label to Array.
+SetLabel
+
+# Set Cpu Use Rate to Array.
+SetRate
+
+if [ "$1" = "autoconf" ]; then
+	echo yes
+       	exit 0
+fi
+
+if [ "$1" = "config" ]; then
+	# Glaph Common
+	echo 'graph_title CPU Use Rate'
+	echo 'graph_args --base 1000 -l 0'
+	echo 'graph_vlabel %'
+	echo 'graph_category system'
+	#echo 'graph_order response time'
+	echo 'graph_scale yes'
+	echo 'graph_printf %6.2lf'
+	#echo "graph_order ${LABEL[0]} ${LABEL[1]} ${LABEL[2]}"
+
+	# Set Info.
+	for (( Z = 0; Z < ${#DATA[@]}; ++Z ))
+	do
+		echo "${LABEL[$Z]}.label ${LABEL[$Z]}"
+		echo "${LABEL[$Z]}.draw LINE1"
+		echo "${LABEL[$Z]}.warning ${WARN_RES}"
+		echo "${LABEL[$Z]}.critical ${CRITICAL_RES}"
+		echo "${LABEL[$Z]}.info Cpu Use Info"
+	done
+
+	exit 0
+fi
+
+# Set Value.
+for (( Z = 0; Z < ${#DATA[@]}; ++Z ))
+do
+	echo "${LABEL[$Z]}.value ${RATE[$Z]}"
+done
