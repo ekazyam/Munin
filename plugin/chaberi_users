@@ -1,0 +1,48 @@
+#!/bin/bash
+################################
+# Author: ekazyam
+# Data  : 2017/02/12
+# Ver   : 1.0.0
+################################
+# for chaberi user count.
+
+# path of tempsensor binary
+BIN_PATH="/usr/local/bin"
+
+# Setting threshold value for warn and critical.
+WARN_TEMP='200'
+CRITICAL_TEMP='300'
+
+# Setting URL.
+URL='http://www.chaberi.com/'
+
+if [ "$1" = "autoconf" ]; then
+        echo yes
+        exit 0
+fi
+
+if [ "$1" = "config" ]; then
+
+	# glaph common
+        echo 'graph_title chaberi'
+        echo 'graph_args -l 0 '
+        echo 'graph_vlabel C'
+        echo 'graph_category system'
+
+	# temp data
+        echo 'users.label temperature'
+        echo 'users.draw LINE'
+	echo "users.warning ${WARN_TEMP}"
+	echo "users.critical ${CRITICAL_TEMP}"
+
+        print_warning users
+        print_critical users
+
+        exit 0
+fi
+
+
+USER_COUNT=`curl -s ${URL} | grep -E "暇つぶし! 現在[[:digit:]]*人チャット中" -o | grep -E "[[:digit:]]*" -o`
+
+echo "users.value ${USER_COUNT}"
+
